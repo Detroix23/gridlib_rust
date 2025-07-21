@@ -2,7 +2,7 @@
 // Main file for the Detoix's grid module.
 // It allows multiple structured grid of various type.
 
-use std::collections::HashMap;
+pub use std::collections::HashMap;
 
 /// Define a size of a rectangle area.
 #[derive(Debug, Clone)]
@@ -11,13 +11,27 @@ pub struct Size {
     pub y: usize,
 }
 
+/// Define the types of tilings
+#[derive(Debug, Clone)]
+pub enum GridKind {
+    Triangle {
+        // Wip
+    },
+    Squares,
+    Hex,
+    Rectange {
+        size: Size,
+    }
+}
 /// Define a grid
 #[derive(Debug, Clone)]
 pub struct Grid {
-    pub div: String,
+    pub kind: GridKind,
     pub tiles: Vec<Tile>,
     pub size: Size,
+
 }
+
 
 /// Define a tile.
 #[derive(Debug, PartialEq, Clone)]
@@ -49,21 +63,21 @@ pub const FIXED_SIZE: bool = true;
 /// Grid size. All sides are equal
 pub const GRID_SIZE: usize = 20;
 /// UI - Grid visualisation. Void is printed when the tile is not loaded, non-existent or the feature is unknown.
-pub struct UiTiles<'a> {
-    pub on: &'a str,
-    pub off: &'a str,
-    pub void: &'a str,
+pub struct UiTiles {
+    pub on: &'static str,
+    pub off: &'static str,
+    pub void: &'static str,
 }
 /// UI - Grid to print chars
 pub const DEFAULT_UI_TILES: UiTiles = UiTiles {
-    on: "#",
-    off: "0",
-    void: "."
+    on: "██",
+    off: "░░",
+    void: "▗▘"
 };
 
 /// # Create a grid
 /// Need a size for creating a square grid and default fill state.
-pub fn grid_init(div: String, size: usize, default_state: bool) -> Grid {
+pub fn grid_init(kind: GridKind, size: usize, default_state: bool) -> Grid {
     let mut tiles: Vec<Tile> = Vec::new();
     for x in 0..size {
         for y in 0..size {
@@ -76,7 +90,7 @@ pub fn grid_init(div: String, size: usize, default_state: bool) -> Grid {
         }
     }
     let grid: Grid = Grid {
-        div,
+        kind,
         tiles,
         size: Size {
             x: size,
@@ -156,6 +170,7 @@ pub fn grid_inline(grid: &Grid, local_ui_tiles: &UiTiles, local_ui_features: &Ha
     let size_y: i32 = min_y.abs() + max_y.abs();
     println!("- Max: x={}, y={}; Min: x={}, y={};", max_x, max_y, min_x, min_y);
     println!("- Size: x={}, y={}; Center: x={}, y={}", size_x, size_y, size_x / 2, size_y / 2);
+    println!("- Legend: on={}, off={}, void={}", local_ui_tiles.on, local_ui_tiles.off, local_ui_tiles.void);
     // Iterate through the grid
     for y in min_y..=max_y {
         for x in min_x..=max_x {
@@ -186,29 +201,3 @@ pub fn grid_inline(grid: &Grid, local_ui_tiles: &UiTiles, local_ui_features: &Ha
     }
 }
 
-/// # Test function.
-/// Uselesss on its own.
-pub fn test_main() {
-    // Vars
-    let default_ui_features: HashMap<TileFeatures, &'static str> = HashMap::new();
-
-    let tiles_to_add: Vec<Tile> = vec![
-            Tile{x: 0, y: 0,  state: true, features: vec![]},
-            Tile{x: 0, y: 1,  state: true, features: vec![]},
-            Tile{x: 0, y: 1,  state: true, features: vec![]},
-            Tile{x: 0, y: -1, state: true, features: vec![]},
-    ];
-    // Manual grid creation. ** Don't do that **.
-    let grid_cartesian1: Grid = Grid {
-        div: String::from("1sq"),
-        tiles: add_tiles(tiles_to_add),
-        size: Size { x: 1, y: 3 }
-    };
-    println!("Grid 1: {:?}", grid_cartesian1);
-    grid_inline(&grid_cartesian1, &DEFAULT_UI_TILES, &default_ui_features);
-
-    println!("Grid 2");
-    let mut grid_cartesian2: Grid = grid_init(String::from("1sq"), GRID_SIZE, false);
-    grid_cartesian2.tiles.remove(34);
-    grid_inline(&grid_cartesian2, &DEFAULT_UI_TILES, &default_ui_features);
-}
