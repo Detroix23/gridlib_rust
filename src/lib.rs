@@ -206,4 +206,58 @@ impl Grid {
             println!();
         }
     }
+
+    /// # Debug grid print to string
+    /// Like the `display_inline` function, but returns a formatted string.
+    pub fn to_string(self: &Self, local_ui_tiles: &UiTiles, local_ui_features: &HashMap<TileFeatures, &'static str>) -> String {
+        let mut grid_string: String = String::new();
+        // Find maximums
+        let mut max_x: i32 = 0;
+        let mut min_x: i32 = 0;
+        let mut max_y: i32 = 0;
+        let mut min_y: i32 = 0;
+        for tile in &self.tiles {
+            if tile.x > max_x {max_x = tile.x;}
+            else if tile.x < min_x {min_x = tile.x;}
+            if tile.y > max_y {max_y = tile.y;}
+            else if tile.y < min_y {min_y = tile.y;}
+        }
+        let size_x: i32 = min_x.abs() + max_x.abs();
+        let size_y: i32 = min_y.abs() + max_y.abs();
+        // Debug info
+        grid_string += &format!("- Max: x={}, y={}; Min: x={}, y={};\n", max_x, max_y, min_x, min_y);
+        grid_string += &format!("- Size: x={}, y={}; Center: x={}, y={}\n", size_x, size_y, size_x / 2, size_y / 2);
+        grid_string += &format!("- Legend: on={}, off={}, void={}\n", local_ui_tiles.on, local_ui_tiles.off, local_ui_tiles.void);
+        // Iterate through the grid
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                //print!("({}; {})", x, y);
+                // Check the tiles
+                let mut found: bool = false;
+                let mut i: usize = 0;
+                while !found && i < self.tiles.len() {
+                    let tile = &self.tiles[i];
+                    // If tile exist and is found.
+                    if tile.x == x as i32 && tile.y == y as i32 {
+                        if tile.features.len() > 0 {
+                            grid_string += &format!("{}", local_ui_features[tile.features.last().expect("(X) - No features.")]);
+                        } else if tile.state {
+                            grid_string += &format!("{}", local_ui_tiles.on);
+                        } else {
+                            grid_string += &format!("{}", local_ui_tiles.off);
+                        }
+                        found = true;
+                    }
+                    i += 1;
+                }
+                if !found {
+                    grid_string += &format!("{}", local_ui_tiles.void);
+                }
+            }
+            grid_string += &format!("\n");
+        }
+        
+        grid_string
+    }
+
 }
